@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"strconv"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/rtpa25/banking/errs"
 	"github.com/rtpa25/banking/logger"
@@ -11,23 +12,23 @@ import (
 )
 
 type CustomerRepositoryDB struct {
-	dbClient *sql.DB
+	dbClient *sqlx.DB
 }
 
 func (d CustomerRepositoryDB) FindAll(status string) ([]Customer, *errs.AppError) {
 	var findAllSQL string
-	var rows *sql.Rows
 	var err error
+	customers := make([]Customer, 0)
 
 	if status == "" {
 		findAllSQL = `SELECT id, name, city, zipcode, date_of_birth, status from customers`
-		rows, err = d.dbClient.Query(findAllSQL)
+		err = d.dbClient.Select(&customers, findAllSQL)
 	} else {
 		findAllSQL = `SELECT id, name, city, zipcode, date_of_birth, status from customers WHERE status = $1`
 		if status == "active" {
-			rows, err = d.dbClient.Query(findAllSQL, 1)
+			err = d.dbClient.Select(&customers, findAllSQL, 1)
 		} else if status == "inactive" {
-			rows, err = d.dbClient.Query(findAllSQL, 0)
+			err = d.dbClient.Select(&customers, findAllSQL, 0)
 		}
 	}
 
@@ -40,16 +41,6 @@ func (d CustomerRepositoryDB) FindAll(status string) ([]Customer, *errs.AppError
 		}
 	}
 
-	customers := make([]Customer, 0)
-	for rows.Next() {
-		var c Customer
-		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
-		if err != nil {
-			logger.Error("Error while scanning customer" + err.Error())
-			return nil, errs.NewUnexpectedError("unexpected database error")
-		}
-		customers = append(customers, c)
-	}
 	return customers, nil
 }
 
@@ -59,9 +50,8 @@ func (d CustomerRepositoryDB) ById(id string) (*Customer, *errs.AppError) {
 	if err != nil {
 		logger.Error(err.Error())
 	}
-	row := d.dbClient.QueryRow(findUserSQL, intId) //only return one row
 	var c Customer
-	err = row.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
+	err = d.dbClient.Get(&c, findUserSQL, intId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.Error("Error while scanning customer" + err.Error())
@@ -76,7 +66,7 @@ func (d CustomerRepositoryDB) ById(id string) (*Customer, *errs.AppError) {
 
 func NewCustomerRepositoryDB() CustomerRepositoryDB {
 	connStr := viper.Get("DB_URL")
-	db, err := sql.Open("postgres", connStr.(string))
+	db, err := sqlx.Open("postgres", connStr.(string))
 	if err != nil {
 		logger.Error(err.Error())
 	}
