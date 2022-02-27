@@ -5,13 +5,12 @@ import (
 	"github.com/rtpa25/banking/errs"
 )
 
-//db tag is required when doing structscan with sqlx
 type Customer struct {
-	Id          string `db:"id"`
+	Id          int64
 	Name        string
 	City        string
 	Zipcode     string
-	DateOfBirth string `db:"date_of_birth"`
+	DateOfBirth string
 	Status      string
 }
 

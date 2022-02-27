@@ -11,7 +11,7 @@ func (s CustomerRepositoryStub) FindAll() ([]Customer, error) {
 func NewCustomerStub() CustomerRepositoryStub {
 	customers := []Customer{
 		{
-			Id:          "1001",
+			Id:          1001,
 			Name:        "Ronit",
 			City:        "New Delhi",
 			Zipcode:     "751012",
@@ -19,7 +19,7 @@ func NewCustomerStub() CustomerRepositoryStub {
 			Status:      "1",
 		},
 		{
-			Id:          "1002",
+			Id:          1002,
 			Name:        "Yash",
 			City:        "New Delhi",
 			Zipcode:     "751012",
@@ -27,7 +27,7 @@ func NewCustomerStub() CustomerRepositoryStub {
 			Status:      "1",
 		},
 		{
-			Id:          "1003",
+			Id:          1003,
 			Name:        "Nikhilesh",
 			City:        "New Delhi",
 			Zipcode:     "751012",

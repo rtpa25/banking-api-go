@@ -8,7 +8,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/rtpa25/banking/errs"
 	"github.com/rtpa25/banking/logger"
-	"github.com/spf13/viper"
 )
 
 type CustomerRepositoryDB struct {
@@ -64,12 +63,6 @@ func (d CustomerRepositoryDB) ById(id string) (*Customer, *errs.AppError) {
 	return &c, nil
 }
 
-func NewCustomerRepositoryDB() CustomerRepositoryDB {
-	connStr := viper.Get("DB_URL")
-	db, err := sqlx.Open("postgres", connStr.(string))
-	if err != nil {
-		logger.Error(err.Error())
-	}
-
-	return CustomerRepositoryDB{dbClient: db}
+func NewCustomerRepositoryDB(dbClient *sqlx.DB) CustomerRepositoryDB {
+	return CustomerRepositoryDB{dbClient: dbClient}
 }
